@@ -17,7 +17,7 @@ jobs:
           paths:
             - ~/.m2 # 依赖存储路径
           key: excelutils-dependencies-{{ checksum "pom.xml" }} # 缓存的Key
-      - run: mvn clean dependency:go-offline -Dmaven.test.skip=false -Dmaven.javadoc.skip=true -e package # 构建项目
+      - run: mvn clean dependency:go-offline -Dmaven.test.skip=false -Dmaven.test.failure.ignore=true -Dmaven.javadoc.skip=true -e package # 构建项目
       - run: bash <(curl -s https://codecov.io/bash) -t 82633789-5676-48f3-8373-79981064509c # codecov
 
 workflows:
