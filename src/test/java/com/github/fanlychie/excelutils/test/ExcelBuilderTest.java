@@ -7,11 +7,14 @@ import com.github.fanlychie.excelutils.write.ExcelWriterBuilder;
 import lombok.Data;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ExcelBuilderTest {
 
     private static List<Customer> customers;
