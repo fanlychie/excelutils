@@ -8,7 +8,7 @@
 </p>
 <p align="center">
     <a href="https://circleci.com/gh/fanlychie/excelutils" target="_blank" title="Circle CI">
-        <img src="https://circleci.com/gh/fanlychie/excelutils.svg?style=svg&circle-token=1173052afd21856384d886a4aac200286199cc15">
+        <img src="https://circleci.com/gh/fanlychie/excelutils.svg?style=svg">
     </a>
     <a href="https://codecov.io/gh/fanlychie/excelutils" target="_blank" title="Codecov">
         <img src="https://codecov.io/gh/fanlychie/excelutils/branch/master/graph/badge.svg" />
