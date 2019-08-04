@@ -1,0 +1,13 @@
+# 全局配置
+global:
+    cellWidth: 18
+# 标题行配置
+titleStyle:
+    index: 0
+    format: STRING
+    align: CENTER
+    verticalAlign: CENTER
+# 主体行配置
+bodyStyle:
+    index: 1
+    verticalAlign: CENTER

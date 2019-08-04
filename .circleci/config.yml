@@ -1,0 +1,27 @@
+# Java Maven CircleCI 2.0 configuration file (Check https://circleci.com/docs/2.0/language-java/ for more details)
+
+version: 2 # circle-ci 版本
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch # 容器
+    working_directory: ~/workspace/excelutils # 工作目录
+    steps:
+      - checkout # 检查代码到工作目录
+      - restore_cache:
+          keys:
+            - excelutils-dependencies-{{ checksum "pom.xml" }} # 重新缓存依赖(如果pom.xml文件更改过)
+            - excelutils-dependencies- # 否则使用上次缓存的依赖
+      - save_cache:
+          paths:
+            - ~/.m2 # 依赖存储路径
+          key: excelutils-dependencies-{{ checksum "pom.xml" }} # 缓存的Key
+      - run: mvn clean dependency:go-offline -Dmaven.test.skip=false -Dmaven.javadoc.skip=true package # 构建项目
+      - run: bash <(curl -s https://codecov.io/bash) -t 6271f6c4-1339-44f7-8741-aa68171768c4 # codecov
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build

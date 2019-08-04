@@ -1,0 +1,33 @@
+# 全局配置
+global:
+    cellWidth: 19
+# 标题行配置
+titleStyle:
+    index: 0
+    height: 20
+    fontName: 宋体
+    fontSize: 12
+    fontColor: BLACK
+    autoWrap: false
+    format: STRING
+    backgroundColor: WHITE
+    align: CENTER
+    verticalAlign: CENTER
+    border: 0x1
+    borderColor: GREY_25_PERCENT
+# 主体行配置
+bodyStyle:
+    index: 1
+    height: 18
+    fontName: 宋体
+    fontSize: 11
+    fontColor: BLACK
+    autoWrap: true
+    backgroundColor: WHITE
+    align: LEFT
+    verticalAlign: CENTER
+    border: 0x1
+    borderColor: GREY_25_PERCENT
+    mapping:
+        T: 是
+        F: 否

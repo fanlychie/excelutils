@@ -1,0 +1,23 @@
+﻿### eclipse ignore ###
+.settings/
+.project
+.classpath
+
+### idea ignore ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### maven ignore ###
+target/
+
+### common file ###
+*.class
+*.log
+*.cache
+*.tmp
+.DS_Store
