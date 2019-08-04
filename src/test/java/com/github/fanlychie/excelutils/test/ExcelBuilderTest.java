@@ -18,7 +18,7 @@ public class ExcelBuilderTest {
 
     private static String filename = "customers.xlsx";
 
-    private static String pathname = System.getProperty("user.dir");
+    private static String pathname = System.getProperty("user.dir") + "/";
 
     /**
      * 自定义样式
