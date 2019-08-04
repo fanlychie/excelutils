@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ExcelReaderBuilderTest {
 
-    private static String pathname = System.getProperty("java.io.tmpdir");
+    private static String pathname = System.getProperty("user.dir");
 
     @Test
     public void testParse() {

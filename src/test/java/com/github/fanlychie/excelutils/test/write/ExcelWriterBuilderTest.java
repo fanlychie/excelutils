@@ -15,7 +15,7 @@ public class ExcelWriterBuilderTest {
 
     private static List<Customer> customers;
 
-    private static String pathname = System.getProperty("java.io.tmpdir");
+    private static String pathname = System.getProperty("user.dir");
 
     /**
      * 自定义样式
