@@ -3,6 +3,7 @@ package com.github.fanlychie.excelutils.write;
 import com.github.fanlychie.excelutils.exception.WriteExcelException;
 import com.github.fanlychie.excelutils.spec.Align;
 import com.github.fanlychie.excelutils.spec.Format;
+import com.github.fanlychie.excelutils.write.ExcelWriter.Paging;
 import com.github.fanlychie.excelutils.write.model.StyleConfiguration;
 
 /**
@@ -26,6 +27,21 @@ public final class ExcelWriterBuilder {
      * 工作表配置
      */
     private Configurable configSheet;
+
+    /**
+     * 分页参数
+     */
+    private Paging paging;
+
+    /**
+     * 分页查询接口
+     */
+    private PagingQuerier querier;
+
+    /**
+     * Sheet页名称策略
+     */
+    private SheetNameStrategy strategy;
 
     /**
      * 使用YAML配置文件配置样式
@@ -88,6 +104,17 @@ public final class ExcelWriterBuilder {
     }
 
     /**
+     * 分页查询
+     *
+     * @param querier 分页查询实现
+     * @return 返回 {@link PagingBuilder}
+     */
+    public PagingBuilder pagingQuery(PagingQuerier querier) {
+        this.querier = querier;
+        return new PagingBuilder(this);
+    }
+
+    /**
      * 构建{@link ExcelWriter}实例, 用于输出EXCEL文件
      *
      * @return 返回 {@link ExcelWriter}
@@ -100,9 +127,9 @@ public final class ExcelWriterBuilder {
             throw new WriteExcelException("payload can not be null");
         }
         if (config != null) {
-            return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(config), pojoClass);
+            return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(config), pojoClass, paging, querier, strategy);
         }
-        return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(), pojoClass);
+        return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(), pojoClass, paging, querier, strategy);
     }
 
     public static class BodyRowStyleBuilder extends BasicRowStyleBuilder<BodyRowStyleBuilder> {
@@ -300,6 +327,70 @@ public final class ExcelWriterBuilder {
         public T format(String format) {
             style.setFormat(format);
             return reference;
+        }
+
+    }
+
+    public static class PagingBuilder {
+
+        protected ExcelWriterBuilder builder;
+
+        protected PagingBuilder(ExcelWriterBuilder builder) {
+            this.builder = builder;
+            builder.paging = new Paging();
+        }
+
+        /**
+         * 设置分页起始的页码, 从1开始
+         *
+         * @param page 页码
+         * @return 返回当前引用
+         */
+        public PagingBuilder pageNumber(int page) {
+            builder.paging.page = page;
+            return this;
+        }
+
+        /**
+         * 设置每页的大小
+         *
+         * @param size 每页的大小
+         * @return 返回当前引用
+         */
+        public PagingBuilder pageSize(int size) {
+            builder.paging.size = size;
+            return this;
+        }
+
+        /**
+         * 设置每个Sheet页最大的数据行数, 超出这个阀值将自动另起一个新的Sheet页
+         *
+         * @param max 最大的行数
+         * @return 返回当前引用
+         */
+        public PagingBuilder maxRowsPerSheet(int max) {
+            builder.paging.max = max;
+            return this;
+        }
+
+        /**
+         * 设置Sheet页名称策略
+         *
+         * @param sheetNameStrategy Sheet页名称策略
+         * @return 返回当前引用
+         */
+        public PagingBuilder sheetNameStrategy(SheetNameStrategy sheetNameStrategy) {
+            builder.strategy = sheetNameStrategy;
+            return this;
+        }
+
+        /**
+         * 配置完成, 返回上层
+         *
+         * @return 返回 {@link ExcelWriterBuilder}
+         */
+        public ExcelWriterBuilder and() {
+            return builder;
         }
 
     }

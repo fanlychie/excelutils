@@ -1,6 +1,7 @@
 package com.github.fanlychie.excelutils.read;
 
 import com.github.fanlychie.excelutils.exception.ExcelCastException;
+import com.github.fanlychie.excelutils.read.ExcelReader.Paging;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +29,16 @@ public final class ExcelReaderBuilder {
      * 正文从第几行开始解析
      */
     private int rownum;
+
+    /**
+     * 分页
+     */
+    private Paging paging;
+
+    /**
+     * 数据处理
+     */
+    private PagingReader reader;
 
     /**
      * 配置EXCEL文件流
@@ -76,6 +87,29 @@ public final class ExcelReaderBuilder {
     }
 
     /**
+     * 分页大小
+     *
+     * @param size 每一页的数据大小
+     * @return 返回 {@link ExcelReaderBuilder}
+     */
+    public ExcelReaderBuilder pageSize(int size) {
+        paging = new Paging();
+        paging.size = size;
+        return this;
+    }
+
+    /**
+     * 当解析读取到的数据达到pageSize设定的阀值时, 触发PagingReader处理
+     *
+     * @param reader {@link PagingReader}
+     * @return 返回 {@link ExcelReaderBuilder}
+     */
+    public ExcelReaderBuilder reader(PagingReader reader) {
+        this.reader = reader;
+        return this;
+    }
+
+    /**
      * 配置从文件的第几行开始解析
      *
      * @param row 从文件的第几行开始解析
@@ -96,6 +130,8 @@ public final class ExcelReaderBuilder {
         excelReader.setStream(excelStream);
         excelReader.setStart(rownum);
         excelReader.setTargetClass(pojoClass);
+        excelReader.setPaging(paging);
+        excelReader.setReader(reader);
         excelReader.init();
         return excelReader;
     }

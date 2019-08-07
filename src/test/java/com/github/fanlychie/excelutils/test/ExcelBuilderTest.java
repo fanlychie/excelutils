@@ -2,6 +2,7 @@ package com.github.fanlychie.excelutils.test;
 
 import com.github.fanlychie.excelutils.annotation.Cell;
 import com.github.fanlychie.excelutils.read.ExcelReaderBuilder;
+import com.github.fanlychie.excelutils.read.PagingReader;
 import com.github.fanlychie.excelutils.spec.Align;
 import com.github.fanlychie.excelutils.write.ExcelWriterBuilder;
 import lombok.Data;
@@ -74,16 +75,34 @@ public class ExcelBuilderTest {
     }
 
     @Test
-    public void testParse() {
+    public void testRead() {
         List<Customer> list = new ExcelReaderBuilder()
                 .stream(pathname + filename)
                 .start(2)
                 .payload(Customer.class)
                 .build()
-                .parse();
+                .read();
         for (Customer customer : list) {
             System.out.println(customer);
         }
+    }
+
+    @Test
+    public void testPagingRead() {
+        new ExcelReaderBuilder().stream(pathname + filename)
+                .payload(Customer.class)
+                .start(2) // 从第二行开始解析(第一行是标题行, 跳过)
+                .pageSize(2) // 每次处理2条
+                .reader(new PagingReader<Customer>(){ // 每当解析EXCEL行数达到pageSize设定的阀值时, 触发PagingReader.read, 可以在此处处理解析的结果
+                    @Override
+                    public void read(List<Customer> items) {
+                        for (Customer item : items) {
+                            System.out.println(item);
+                        }
+                    }
+                })
+                .build()
+                .paging(); // 调用分页处理, 无返回值, 数据分批交于PagingReader.read处理
     }
 
     @Data

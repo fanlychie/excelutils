@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,9 +59,24 @@ public class ExcelWriter {
     private int sheetCount = 1;
 
     /**
-     * 行的边界索引值
+     * 行号计数索引值
      */
-    private int rowBoundIndex;
+    private int rowIndex;
+
+    /**
+     * 分页参数
+     */
+    private Paging paging;
+
+    /**
+     * 分页查询接口
+     */
+    private PagingQuerier querier;
+
+    /**
+     * Sheet页名称策略
+     */
+    private SheetNameStrategy sheetNameStrategy;
 
     ExcelWriter() {}
 
@@ -71,7 +87,7 @@ public class ExcelWriter {
      * @return 返回当前对象
      */
     public ExcelWriter write(List<?> data) {
-        return write(workbookSheet.getName() + (sheetCount++), data);
+        return write(null, data);
     }
 
     /**
@@ -82,7 +98,7 @@ public class ExcelWriter {
      * @return 返回当前对象
      */
     public ExcelWriter write(String sheetName, List<?> data) {
-        return buildSheet(sheetName, data, true);
+        return buildSheet(sheetName, data, true, false);
     }
 
     /**
@@ -92,7 +108,11 @@ public class ExcelWriter {
      * @return 返回当前对象
      */
     public ExcelWriter append(List<?> data) {
-        return buildSheet(null, data, false);
+        return buildSheet(null, data, false, false);
+    }
+
+    public ExcelWriter paging() {
+        return buildSheet(null, null, true, true);
     }
 
     /**
@@ -164,36 +184,58 @@ public class ExcelWriter {
         }
     }
 
-    ExcelWriter prepare(WorkbookSheet workbookSheet, Class<?> pojoClass) {
+    ExcelWriter prepare(WorkbookSheet workbookSheet, Class<?> pojoClass, Paging paging, PagingQuerier querier, SheetNameStrategy sheetNameStrategy) {
         this.workbookSheet = workbookSheet;
         this.workbook = new SXSSFWorkbook();
+        this.paging = paging;
+        this.querier = querier;
+        this.sheetNameStrategy = sheetNameStrategy;
         this.cellFields = new LinkedList<>(AnnotationHandler.getCellFieldMapping(pojoClass).values());
+        this.rowIndex = workbookSheet.getBodyStyle().getIndex();
         return this;
     }
 
     /**
      * 构建工作表(Sheet)
      *
-     * @param sheetName 工作表的名称
-     * @param data      填充的数据
-     * @param create    是否创建新的工作表
+     * @param sheetName  工作表的名称
+     * @param data       填充的数据
+     * @param create     是否创建新的工作表
+     * @param pagination 是否分页
      * @return 返回 {@link ExcelWriter}
      */
-    private ExcelWriter buildSheet(String sheetName, List<?> data, boolean create) {
+    private ExcelWriter buildSheet(String sheetName, List<?> data, boolean create, boolean pagination) {
         try {
             if (create) {
                 // 创建新的工作表
-                createNewSheet(sheetName);
+                createNewSheet(sheetName, pagination);
             }
             // 处理工作表数据
             if (data != null && data.size() > 0) {
-                // 主体索引
-                int bodyIndex = rowBoundIndex == 0 ? workbookSheet.getBodyStyle().getIndex() : rowBoundIndex;
-                // 边界索引
-                rowBoundIndex += data.size();
-                for (Object item : data) {
-                    // 构建行数据
-                    fillDataRow(bodyIndex++, item);
+                writeData(data);
+            } else if (pagination) {
+                // 一直执行分页查询, 直至查询的页面结果为空或最后一页
+                while ((data = querier.queryPage(paging.page, paging.offset(), paging.size)) != null) {
+                    // 当前页数据集合的大小
+                    int size = data.size();
+                    // 页码 + 1
+                    paging.page++;
+                    // 如果数据超出设置的上限, 分两个sheet页写出
+                    if (rowIndex + size > paging.max) {
+                        Split split = new Split(rowIndex, paging.max, data);
+                        // 先写满当前sheet
+                        writeData(split.blockList);
+                        // 创建新的sheet
+                        createNewSheet(sheetName, pagination);
+                        // 超出的数据写入新的sheet
+                        writeData(split.overList);
+                    } else {
+                        writeData(data);
+                    }
+                    // 如果当前页的数据不满每页数据大小, 表明当前页是最后一页, 退出循环
+                    if (size < paging.size) {
+                        break;
+                    }
                 }
             }
             return this;
@@ -203,19 +245,41 @@ public class ExcelWriter {
     }
 
     /**
+     * 将数据写出到Sheet
+     *
+     * @param data 数据集
+     */
+    private void writeData(List<?> data) {
+        // 边界索引
+        rowIndex += data.size();
+        for (Object item : data) {
+            // 构建行数据
+            fillDataRow(rowIndex++, item);
+        }
+    }
+
+    /**
      * 创建一个新的工作表(Sheet)
      *
-     * @param sheetName 工作表名称
+     * @param sheetName  工作表名称
+     * @param pagination 是否分页
      */
-    private void createNewSheet(String sheetName) {
-        // 重置索引
-        rowBoundIndex = 0;
+    private void createNewSheet(String sheetName, boolean pagination) {
+        if (sheetName == null) {
+            if (pagination && sheetNameStrategy != null) {
+                sheetName = sheetNameStrategy.getSheetName(sheetCount++);
+            } else {
+                sheetName = workbookSheet.getName() + (sheetCount++);
+            }
+        }
         // 创建新的工作表
         sheet = workbook.createSheet(sheetName);
         // 添加标题行
         addTitleRow(workbookSheet.getTitleStyle());
         // 对其余的行使用格式刷
         formatColumnStyle(workbookSheet.getBodyStyle());
+        // 重置索引
+        rowIndex = workbookSheet.getBodyStyle().getIndex();
     }
 
     /**
@@ -224,8 +288,7 @@ public class ExcelWriter {
      * @param style 行样式
      */
     private void addTitleRow(RowStyle style) {
-        int titleIndex = rowBoundIndex == 0 ? style.getIndex() : rowBoundIndex;
-        SXSSFRow row = sheet.createRow(titleIndex);
+        SXSSFRow row = sheet.createRow(style.getIndex());
         if (style.getHeight() != null) {
             row.setHeightInPoints(style.getHeight());
         }
@@ -238,7 +301,6 @@ public class ExcelWriter {
             cell.setCellStyle(buildCellStyle(style));
             cell.setCellValue(cellField.getName());
         }
-        ++rowBoundIndex;
     }
 
     /**
@@ -367,6 +429,41 @@ public class ExcelWriter {
             font.setFontHeightInPoints(size.shortValue());
         }
         return font;
+    }
+
+    private static class Split {
+
+        private List blockList;
+
+        private List overList;
+
+        public Split(int current, int max, List list) {
+            overList = new ArrayList<>();
+            blockList = new ArrayList<>();
+            for (Object item : list) {
+                if (current++ < max) {
+                    blockList.add(item);
+                } else {
+                    overList.add(item);
+                }
+            }
+            list.clear();
+        }
+
+    }
+
+    static class Paging {
+
+        int page = 1;
+
+        int size = 100;
+
+        int max = Integer.MAX_VALUE;
+
+        int offset() {
+            return (page - 1) * size;
+        }
+
     }
 
 }
