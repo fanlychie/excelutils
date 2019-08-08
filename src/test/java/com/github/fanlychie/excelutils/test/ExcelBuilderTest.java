@@ -5,6 +5,8 @@ import com.github.fanlychie.excelutils.read.ExcelReaderBuilder;
 import com.github.fanlychie.excelutils.read.PagingReader;
 import com.github.fanlychie.excelutils.spec.Align;
 import com.github.fanlychie.excelutils.write.ExcelWriterBuilder;
+import com.github.fanlychie.excelutils.write.PagingQuerier;
+import com.github.fanlychie.excelutils.write.SheetNameStrategy;
 import lombok.Data;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -12,17 +14,23 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ExcelBuilderTest {
 
-    private static List<Customer> customers;
-
     private static String filename = "customers.xlsx";
 
     private static String pathname = System.getProperty("user.dir") + "/";
+
+    private static List<Customer> customers = queryByPage(0, Integer.MAX_VALUE);
 
     /**
      * 自定义样式
@@ -105,6 +113,40 @@ public class ExcelBuilderTest {
                 .paging(); // 调用分页处理, 无返回值, 数据分批交于PagingReader.read处理
     }
 
+    @Test
+    public void testPagingWrite() {
+        new ExcelWriterBuilder()
+                // POJO 类
+                .payload(Customer.class)
+                // 使用内置的样式
+                .builtin()
+                // 分页查询数据
+                .pagingQuery(new PagingQuerier() {
+                    @Override
+                    public List queryPage(int page, int offset, int size) {
+                        return queryByPage(offset, size);
+                    }
+                })
+                // 每次查询200条数据
+                .pageSize(200)
+                // 每个Sheet页最多写500行
+                .maxRowsPerSheet(500)
+                // Sheet页的名称策略
+                .sheetNameStrategy(new SheetNameStrategy() {
+                    @Override
+                    public String getSheetName(int sheetIndex) {
+                        return "Sheet" + sheetIndex;
+                    }
+                })
+                .and()
+                // 构建实例
+                .build()
+                // 分页处理
+                .paging()
+                // 将数据写出到文件
+                .toFile(pathname + filename);
+    }
+
     @Data
     public static class Customer {
 
@@ -119,45 +161,57 @@ public class ExcelBuilderTest {
 
     }
 
+    /**
+     * 测试分页查询
+     */
+    @Test
+    public void testQueryByPage() {
+        List<Customer> customers = queryByPage(0, 5);
+        for (Customer customer : customers) {
+            System.out.println(customer);
+        }
+        assertEquals(5, customers.size());
+    }
+
+    /**
+     * 模拟数据库的分页查询
+     *
+     * @param offset 起始索引
+     * @param size   每页的大小
+     */
+    private static List<Customer> queryByPage(int offset, int size) {
+        List<Customer> list = new ArrayList<>();
+        int current = 0;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                ExcelBuilderTest.class.getResourceAsStream("/customers.txt"), "UTF-8"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (current++ < offset) {
+                    continue;
+                }
+                list.add(convertCustomer(line));
+                if (current >= offset + size) {
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    private static Customer convertCustomer(String line) {
+        Customer customer = new Customer();
+        String[] items = line.split(",");
+        customer.setName(items[0]);
+        customer.setMobile(items[1]);
+        customer.setAge(Integer.parseInt(items[2]));
+        return customer;
+    }
+
     @BeforeClass
     public static void before() {
         System.out.println(">>>>>>>>>>>>> 单元测试开始");
-        customers = new LinkedList<>();
-        Customer customer1 = new Customer();
-        customer1.name = "张三";
-        customer1.mobile = "13800138000";
-        customer1.age = 20;
-        Customer customer2 = new Customer();
-        customer2.name = "李四";
-        customer2.mobile = "13800138001";
-        customer2.age = 21;
-        Customer customer3 = new Customer();
-        customer3.name = "王五";
-        customer3.mobile = "13800138002";
-        customer3.age = 22;
-        Customer customer4 = new Customer();
-        customer4.name = "赵六";
-        customer4.mobile = "13800138003";
-        customer4.age = 25;
-        Customer customer5 = new Customer();
-        customer5.name = "孙七";
-        customer5.mobile = "13800138004";
-        customer5.age = 26;
-        Customer customer6 = new Customer();
-        customer6.name = "周八";
-        customer6.mobile = "13800138005";
-        customer6.age = 23;
-        Customer customer7 = new Customer();
-        customer7.name = "吴九";
-        customer7.mobile = "13800138006";
-        customer7.age = 24;
-        customers.add(customer1);
-        customers.add(customer2);
-        customers.add(customer3);
-        customers.add(customer4);
-        customers.add(customer5);
-        customers.add(customer6);
-        customers.add(customer7);
     }
 
     @AfterClass
