@@ -225,10 +225,12 @@ public class ExcelWriter {
                         Split split = new Split(rowIndex, paging.max, data);
                         // 先写满当前sheet
                         writeData(split.blockList);
-                        // 创建新的sheet
-                        createNewSheet(sheetName, pagination);
-                        // 超出的数据写入新的sheet
-                        writeData(split.overList);
+                        if (split.overList.size() > 0) {
+                            // 创建新的sheet
+                            createNewSheet(sheetName, pagination);
+                            // 超出的数据写入新的sheet
+                            writeData(split.overList);
+                        }
                     } else {
                         writeData(data);
                     }
@@ -250,8 +252,6 @@ public class ExcelWriter {
      * @param data 数据集
      */
     private void writeData(List<?> data) {
-        // 边界索引
-        rowIndex += data.size();
         for (Object item : data) {
             // 构建行数据
             fillDataRow(rowIndex++, item);
@@ -441,7 +441,8 @@ public class ExcelWriter {
             overList = new ArrayList<>();
             blockList = new ArrayList<>();
             for (Object item : list) {
-                if (current++ < max) {
+                // 标题行占了一行, 计算最大行数时使用`=`计数增加一行数据行
+                if (current++ <= max) {
                     blockList.add(item);
                 } else {
                     overList.add(item);
