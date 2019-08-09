@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @author fanlychie
  */
-public interface PagingQuerier {
+public interface PagingQuery {
 
     /**
      * 查询一页的数据
@@ -17,6 +17,6 @@ public interface PagingQuerier {
      * @param size   每页的大小
      * @return 返回查询的结果集
      */
-    List queryPage(int page, int offset, int size);
+    List queryByPage(int page, int offset, int size);
 
 }

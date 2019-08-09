@@ -71,7 +71,7 @@ public class ExcelWriter {
     /**
      * 分页查询接口
      */
-    private PagingQuerier querier;
+    private PagingQuery pagingQuery;
 
     /**
      * Sheet页名称策略
@@ -184,11 +184,11 @@ public class ExcelWriter {
         }
     }
 
-    ExcelWriter prepare(WorkbookSheet workbookSheet, Class<?> pojoClass, Paging paging, PagingQuerier querier, SheetNameStrategy sheetNameStrategy) {
+    ExcelWriter prepare(WorkbookSheet workbookSheet, Class<?> pojoClass, Paging paging, PagingQuery pagingQuery, SheetNameStrategy sheetNameStrategy) {
         this.workbookSheet = workbookSheet;
         this.workbook = new SXSSFWorkbook();
         this.paging = paging;
-        this.querier = querier;
+        this.pagingQuery = pagingQuery;
         this.sheetNameStrategy = sheetNameStrategy;
         this.cellFields = new LinkedList<>(AnnotationHandler.getCellFieldMapping(pojoClass).values());
         this.rowIndex = workbookSheet.getBodyStyle().getIndex();
@@ -215,7 +215,7 @@ public class ExcelWriter {
                 writeData(data);
             } else if (pagination) {
                 // 一直执行分页查询, 直至查询的页面结果为空或最后一页
-                while ((data = querier.queryPage(paging.page, paging.offset(), paging.size)) != null) {
+                while ((data = pagingQuery.queryByPage(paging.page, paging.offset(), paging.size)) != null) {
                     // 当前页数据集合的大小
                     int size = data.size();
                     // 页码 + 1

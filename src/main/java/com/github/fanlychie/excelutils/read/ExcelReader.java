@@ -44,7 +44,7 @@ public class ExcelReader {
     private Paging paging;
 
     @Setter
-    private PagingReader reader;
+    private PagingHandler handler;
 
     private StylesTable stylesTable;
 
@@ -97,8 +97,8 @@ public class ExcelReader {
         if (paging == null) {
             throw new NullPointerException("Paging can not be null");
         }
-        if (reader == null) {
-            throw new NullPointerException("PagingReader can not be null");
+        if (handler == null) {
+            throw new NullPointerException("PagingHandler can not be null");
         }
         int sheetCount = 1;
         while (sheetIterator.hasNext()) {
@@ -117,8 +117,8 @@ public class ExcelReader {
         if (paging == null) {
             throw new NullPointerException("Paging can not be null");
         }
-        if (reader == null) {
-            throw new NullPointerException("PagingReader can not be null");
+        if (handler == null) {
+            throw new NullPointerException("PagingHandler can not be null");
         }
         while (sheetIterator.hasNext()) {
             processSheet(true);
@@ -181,7 +181,7 @@ public class ExcelReader {
             // 解析的数据集达到设定的大小
             if (paging.current >= paging.size || flush) {
                 // 调用读取器处理数据
-                reader.read(list);
+                handler.handle(list);
                 // 重置计数
                 paging.current = 0;
                 // 清空集合

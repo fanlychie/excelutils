@@ -36,7 +36,7 @@ public final class ExcelWriterBuilder {
     /**
      * 分页查询接口
      */
-    private PagingQuerier querier;
+    private PagingQuery pagingQuery;
 
     /**
      * Sheet页名称策略
@@ -106,11 +106,11 @@ public final class ExcelWriterBuilder {
     /**
      * 分页查询
      *
-     * @param querier 分页查询实现
+     * @param query 分页查询实现
      * @return 返回 {@link PagingBuilder}
      */
-    public PagingBuilder pagingQuery(PagingQuerier querier) {
-        this.querier = querier;
+    public PagingBuilder pagingQuery(PagingQuery query) {
+        this.pagingQuery = query;
         return new PagingBuilder(this);
     }
 
@@ -127,9 +127,9 @@ public final class ExcelWriterBuilder {
             throw new WriteExcelException("payload can not be null");
         }
         if (config != null) {
-            return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(config), pojoClass, paging, querier, strategy);
+            return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(config), pojoClass, paging, pagingQuery, strategy);
         }
-        return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(), pojoClass, paging, querier, strategy);
+        return new ExcelWriter().prepare(configSheet.buildWorkbookSheet(), pojoClass, paging, pagingQuery, strategy);
     }
 
     public static class BodyRowStyleBuilder extends BasicRowStyleBuilder<BodyRowStyleBuilder> {
@@ -152,11 +152,11 @@ public final class ExcelWriterBuilder {
         }
 
         /**
-         * 配置完成, 返回上层
+         * 完成配置, 返回上层
          *
          * @return 返回 {@link ExcelWriterBuilder}
          */
-        public ExcelWriterBuilder and() {
+        public ExcelWriterBuilder complete() {
             return builder;
         }
 
@@ -170,11 +170,11 @@ public final class ExcelWriterBuilder {
         }
 
         /**
-         * 配置完成, 返回上层
+         * 完成配置, 返回上层
          *
          * @return 返回 {@link ExcelWriterBuilder}
          */
-        public ExcelWriterBuilder and() {
+        public ExcelWriterBuilder complete() {
             return builder;
         }
 
@@ -385,11 +385,11 @@ public final class ExcelWriterBuilder {
         }
 
         /**
-         * 配置完成, 返回上层
+         * 完成配置, 返回上层
          *
          * @return 返回 {@link ExcelWriterBuilder}
          */
-        public ExcelWriterBuilder and() {
+        public ExcelWriterBuilder complete() {
             return builder;
         }
 

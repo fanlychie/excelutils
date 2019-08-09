@@ -38,7 +38,7 @@ public final class ExcelReaderBuilder {
     /**
      * 数据处理
      */
-    private PagingReader reader;
+    private PagingHandler handler;
 
     /**
      * 配置EXCEL文件流
@@ -99,13 +99,13 @@ public final class ExcelReaderBuilder {
     }
 
     /**
-     * 当解析读取到的数据达到pageSize设定的阀值时, 触发PagingReader处理
+     * 当解析读取到的数据达到pageSize设定的阀值时, 触发PagingHandler处理
      *
-     * @param reader {@link PagingReader}
+     * @param handler {@link PagingHandler}
      * @return 返回 {@link ExcelReaderBuilder}
      */
-    public ExcelReaderBuilder reader(PagingReader reader) {
-        this.reader = reader;
+    public ExcelReaderBuilder pagingHandler(PagingHandler handler) {
+        this.handler = handler;
         return this;
     }
 
@@ -131,7 +131,7 @@ public final class ExcelReaderBuilder {
         excelReader.setStart(rownum);
         excelReader.setTargetClass(pojoClass);
         excelReader.setPaging(paging);
-        excelReader.setReader(reader);
+        excelReader.setHandler(handler);
         excelReader.init();
         return excelReader;
     }
