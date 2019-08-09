@@ -143,6 +143,8 @@ public void testBuiltin() {
 }
 ```
 
+![](https://raw.githubusercontent.com/fanlychie/mdimg/master/excel_builtin.png)
+
 ---
  
 ### 写出数据到EXCEL文件(YAML配置文件样式)
@@ -167,6 +169,8 @@ public void testConfigure() {
                 .toFile(pathname + filename);
 }
 ```
+
+![](https://raw.githubusercontent.com/fanlychie/mdimg/master/excel_configure.png)
 
 ---
  
@@ -213,6 +217,8 @@ public void testDefine() {
                 .toFile(pathname + filename);
 }
 ```
+
+![](https://raw.githubusercontent.com/fanlychie/mdimg/master/excel_define.png)
 
 ---
 
