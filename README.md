@@ -50,6 +50,8 @@
 
 ## 使用样例
 
+> 注：样例数据(姓名, 手机)均为随机生成数据, 如有雷同，纯属巧合。
+
 > 样例代码来自[src/test/java/com/github/fanlychie/excelutils/test/ExcelBuilderTest.java](https://github.com/fanlychie/excelutils/blob/master/src/test/java/com/github/fanlychie/excelutils/test/ExcelBuilderTest.java)
 
 使用`@Cell`注解将POJO类和EXCEL单元格列建立起关联关系：
